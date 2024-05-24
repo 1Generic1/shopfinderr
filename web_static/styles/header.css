@@ -1,0 +1,30 @@
+header 
+{
+    background-color: blue;
+    height: 100px;
+    width: 100%;
+    text-align: center;
+    line-height: 70px;
+    text-decoration: none;
+    margin: 0;
+}
+
+.horizontal-nav {
+    display: flex;
+    justify-content: space-between; /* Adjust spacing between items */
+    height : 10px;
+    margin-left: 20%;
+    font-size: 25px;
+    color: white;
+}
+
+.horizontal-social a {
+	color: white;
+	padding: 10px;
+}
+
+
+
+.horizontal-nav li:last-child {
+    margin-right: 0; /* Remove margin from the last item */
+}
