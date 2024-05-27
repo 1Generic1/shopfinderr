@@ -1,5 +1,10 @@
 import express from 'express'
-const connectDB = require('./config/db');
+import connectDB from './config/db.js';
+import authRoutes from './routes/auth.js';
+import productRoutes from './routes/products.js';
+import orderRoutes from './routes/orders.js';
+import swaggerUi from 'swagger-ui-express';
+import YAML from 'yamljs'
 
 const app = express();
 
@@ -8,10 +13,16 @@ connectDB();
 // Init Middleware
 app.use(express.json({ extended: false }));
 
+// Load the OpenAPI document
+const openapiDocument = YAML.load('./docs/openapi.yaml');
+
+// Serve Swagger UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapiDocument));
+
 // Define Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/products', require('./routes/products'));
-app.use('/api/orders', require('./routes/orders'));
+app.use('/api/auth', authRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/orders', orderRoutes);
 
 app.get('/', (req, res) => {
 	res.json({'messege':'hello world'});
@@ -20,7 +31,7 @@ app.get('/', (req, res) => {
 app.get('/user', (req, res) => {
         res.json({
 		'messege':'hello world',
-		'name': 'john wick'
+		'name': 'john wickk'
 	});
 })
 

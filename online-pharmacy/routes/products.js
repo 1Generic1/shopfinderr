@@ -1,11 +1,12 @@
-const express = require('express');
+import express from 'express';
+import Product from '../models/Product.js';
+import auth from '../middleware/auth.js';
+
 const router = express.Router();
-const Product = require('../models/Product');
-const auth = require('../middleware/auth');
 
 
 router.post('/', auth, async (req, res) => {
-  const { name, category, price, description } = req.ody;
+  const { name, category, price, description } = req.body;
 
 
   try {
@@ -16,7 +17,7 @@ router.post('/', auth, async (req, res) => {
       description,
     });
 
-    const product = await newProduct.save():
+    const product = await newProduct.save();
     res.json(product);
   } catch (err) {
     console.error(err.message);
@@ -27,9 +28,32 @@ router.post('/', auth, async (req, res) => {
 
 router.get('/', async (req, res) => {
   try {
-        const products = await Product.find();
+    // Extract query parameters
+    const { category, minPrice, maxPrice, sortBy, page = 1, pageSize = 10 } = req.query;
+
+    // Build filter object
+    const filter = {};
+    if (category) filter.category = category;
+    if (minPrice) filter.price = { ...filter.price, $gte: Number(minPrice) };
+    if (maxPrice) filter.price = { ...filter.price, $lte: Number(maxPrice) };
+
+    // Build sort object
+    const sort = {};
+    if (sortBy) sort[sortBy] = 1; // 1 for ascending order, -1 for descending order
+
+    // Pagination options
+    const options = {
+      page: Number(page),
+      limit: Number(pageSize),
+      sort
+    };
+
+    // Find products with pagination, filtering, and sorting
+    const products = await Product.paginate(filter, options);
+
+    // Respond with the products
     res.json(products);
-  } catch (err) {
+    } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
   }
@@ -47,7 +71,7 @@ router.get('/:id', async (req, res) => {
 });
 
 router.put('/:d', auth, async (req, res) => {
-  const (name, category, price, description } = req.body;
+  const {name, category, price, description } = req.body;
 
   try {
     let product = await Product.findById(req.params.id);
@@ -57,6 +81,15 @@ router.put('/:d', auth, async (req, res) => {
     product.category  = category || product.category
     product.price = price || product.price
     product.description = description || product.description
+    
+    await product.save();
+
+    res.json(product);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
 
 router.delete('/:id', auth, async (req, res) => {
   try {
@@ -73,4 +106,4 @@ router.delete('/:id', auth, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

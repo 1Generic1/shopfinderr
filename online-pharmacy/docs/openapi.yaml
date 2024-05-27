@@ -1,0 +1,484 @@
+openapi: 3.0.0
+info:
+  title: Online-Pharmacy Api Doc With Swagger
+  description: xxxxxxx.
+  version: 1.0.0
+
+Contact:
+  name: "Generic"
+  url: "www.shopfinder.com"
+  email: "kelvinstunt@gmail.com"
+
+servers:
+  - url: http://localhost:3000
+    description: Default server for local development
+    name: Local Development Server
+
+paths:
+  /api/products:
+    get:
+      summary: Returns a list of products.
+      parameters:
+        - name: category
+          in: query
+          description: Filter by product category
+          required: false
+          schema:
+            type: string
+        - name: minPrice
+          in: query
+          description: Filter products with a minimum price
+          required: false
+          schema:
+            type: number
+        - name: maxPrice
+          in: query
+          description: Filter products with a maximum price
+          required: false
+          schema:
+            type: number
+        - name: sortBy
+          in: query
+          description: Sort by a specific field (e.g., price, name)
+          required: false
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Page number for pagination
+          required: false
+          schema:
+            type: integer
+        - name: pageSize
+          in: query
+          description: Number of items per page for pagination
+          required: false
+          schema:
+            type: integer
+
+      responses:
+        '200':
+          description: A JSON array of product names
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    category:
+                      type: string
+                    price:
+                      type: number
+                    description:
+                      type: string
+    
+
+    post:
+      summary: Creates a new product.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                category:
+                  type: string
+                price:
+                  type: number
+                description:
+                  type: string
+
+      responses:
+        '201':
+          description: Product created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  category:
+                    type: string
+                  price:
+                    type: number
+                  description:
+                    type: string
+
+  /api/products/{productId}:
+    get:
+      summary: Retrieve a product by ID.
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A product object
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  category:
+                    type: string
+                  price:
+                    type: number
+                  description:
+                    type: string
+        '404':
+          description: Product not found
+
+    put:
+      summary: Updates an existing product.
+      parameters:
+        - name: productId
+          description: product to be updated
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                category:
+                  type: string
+                price:
+                  type: number
+                description:
+                  type: string
+      responses:
+        '200':
+          description: Product updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  name:
+                    type: string
+                  category:
+                    type: string
+                  price:
+                    type: number
+                  description:
+                    type: string
+        '404':
+          description: Product not found
+
+    delete:
+      summary: Deletes a product by ID.
+      parameters:
+        - name: productId
+          description: ProductId to be deleted
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Product deleted
+        '404':
+          description: Product not found
+
+  /api/orders:
+    get:
+      summary: get all orders.
+      responses:
+        '200':
+          description: A JSON array of orders
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    user:
+                      type: string
+                      description: The user who placed the order
+                    products:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          product:
+                            type: string
+                            description: The ID of the product
+                          quantity:
+                            type: integer
+                            description: The quantity of the product
+                    totalAmount:
+                      type: number
+                      description: The total amount of the order
+                    date:
+                      type: string
+                      format: date-time
+                      description: The date and time when the order was created
+
+    post:
+      summary: Create a new order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: string
+                  description: The user who is placing the order
+                products:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      product:
+                        type: string
+                        description: The ID of the product
+                      quantity:
+                        type: integer
+                        description: The quantity of the product
+                totalAmount:
+                  type: number
+                  description: The total amount of the order
+      responses:
+        '201':
+          description: The created order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: string
+                    description: The user who placed the order
+                  products:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        product:
+                          type: string
+                          description: The ID of the product
+                        quantity:
+                          type: integer
+                          description: The quantity of the product
+                  totalAmount:
+                    type: number
+                    description: The total amount of the order
+                  date:
+                    type: string
+                    format: date-time
+                    description: The date and time when the order was created
+
+  /api/orders/{orderId}:
+    get:
+      summary: Get a specific order by ID
+      parameters:
+        - in: path
+          name: orderId
+          description: ID of the order to retrieve
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The requested order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: string
+                    description: The user who placed the order
+                  products:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        product:
+                          type: string
+                          description: The ID of the product
+                        quantity:
+                          type: integer
+                          description: The quantity of the product
+                  totalAmount:
+                    type: number
+                    description: The total amount of the order
+                  date:
+                    type: string
+                    format: date-time
+                    description: The date and time when the order was created
+        '404':
+          description: Order not found
+
+    put:
+      summary: Update a specific order by ID
+      parameters:
+        - in: path
+          name: orderId
+          description: ID of the order to update
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: string
+                  description: The user who is placing the order
+                products:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      product:
+                        type: string
+                        description: The ID of the product
+                      quantity:
+                        type: integer
+                        description: The quantity of the product
+                totalAmount:
+                  type: number
+                  description: The total amount of the order
+      responses:
+        '200':
+          description: The updated order
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: string
+                    description: The user who placed the order
+                  products:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        product:
+                          type: string
+                          description: The ID of the product
+                        quantity:
+                          type: integer
+                          description: The quantity of the product
+                  totalAmount:
+                    type: number
+                    description: The total amount of the order
+                  date:
+                    type: string
+                    format: date-time
+                    description: The date and time when the order was created
+        '404':
+          description: Order not found
+
+    delete:
+      summary: Delete a specific order by ID
+      parameters:
+        - in: path
+          name: orderId
+          description: ID of the order to delete
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Order deleted
+        '404':
+          description: Order not found
+
+  /api/users:
+    get:
+      summary: Get all users
+      responses:
+        '200':
+          description: A list of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      description: The name of the user
+                    email:
+                      type: string
+                      description: The email address of the user
+                    password:
+                      type: string
+                      description: The password of the user
+                    date:
+                      type: string
+                      format: date-time
+                      description: The date and time when the user was created
+
+    post:
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: The name of the user
+                email:
+                  type: string
+                  description: The email address of the user
+                password:
+                  type: string
+                  description: The password of the user
+      responses:
+        '201':
+          description: The created user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: The name of the user
+                  email:
+                    type: string
+                    description: The email address of the user
+                  password:
+                    type: string
+                    description: The password of the user
+                  date:
+                    type: string
+                    format: date-time
+                    description: The date and time when the user was created
