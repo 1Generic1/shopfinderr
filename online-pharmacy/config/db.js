@@ -2,13 +2,11 @@ import mongoose from 'mongoose';
 
 const connectDB = async () => {
   try {
-    await mongoose.connect('mongodb://localhost:27017/online-pharmacy', {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+    await mongoose.connect('mongodb://127.0.0.1:27018/online-pharmacy', {
     });
     console.log('MongoDB Connected...');
   } catch (err) {
-    console.error(err.message);
+    console.error('COULD NOT CONNECT TO DATABASE:', err.message);
     process.exit(1);
   }
 };
