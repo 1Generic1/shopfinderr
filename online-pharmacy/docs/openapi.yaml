@@ -38,6 +38,8 @@ paths:
   /api/products:
     get:
       summary: Returns a list of products.
+      tags:
+        - Products
       parameters:
         - name: category
           in: query
@@ -98,6 +100,8 @@ paths:
 
     post:
       summary: Creates a new product.
+      tags:
+        - Products
       security:
         - bearerAuth: []
       requestBody:
@@ -138,6 +142,8 @@ paths:
   /api/products/{productId}:
     get:
       summary: Retrieve a product by ID.
+      tags:
+        - Products
       parameters:
         - name: productId
           in: path
@@ -167,6 +173,8 @@ paths:
 
     put:
       summary: Updates an existing product.
+      tags:
+        - Products
       parameters:
         - name: productId
           description: product to be updated
@@ -212,6 +220,8 @@ paths:
 
     delete:
       summary: Deletes a product by ID.
+      tags:
+        - Products
       parameters:
         - name: productId
           description: ProductId to be deleted
@@ -228,6 +238,8 @@ paths:
   /api/orders:
     get:
       summary: get all orders.
+      tags:
+        - Orders
       responses:
         '200':
           description: A JSON array of orders
@@ -262,6 +274,8 @@ paths:
 
     post:
       summary: Create a new order
+      tags:
+        - Orders
       requestBody:
         required: true
         content:
@@ -319,6 +333,8 @@ paths:
   /api/orders/{orderId}:
     get:
       summary: Get a specific order by ID
+      tags:
+        - Orders
       parameters:
         - in: path
           name: orderId
@@ -360,6 +376,8 @@ paths:
 
     put:
       summary: Update a specific order by ID
+      tags:
+        - Orders
       parameters:
         - in: path
           name: orderId
@@ -425,6 +443,8 @@ paths:
 
     delete:
       summary: Delete a specific order by ID
+      tags:
+        - Orders
       parameters:
         - in: path
           name: orderId
@@ -441,6 +461,8 @@ paths:
   /api/users:
     get:
       summary: Get all users
+      tags:
+        - Users
       security:
         - bearerAuth: []
       responses:
@@ -470,6 +492,8 @@ paths:
   /api/users/register:
     post:
       summary: Create a new user
+      tags:
+        - Users
       security:
         - JWTAuth: []
       requestBody:
