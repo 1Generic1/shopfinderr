@@ -84,7 +84,8 @@ const orderController = {
 
   deleteOrder: async (req, res) => {
     try {
-      const order = await Order.findById(req.params.id);
+      const orderId = req.params.id
+      const order = await Order.findById(orderId);
       if (!order) {
         return res.status(404).json({ msg: 'Order not found' });
       }
@@ -93,7 +94,7 @@ const orderController = {
         return res.status(401).json({ msg: 'Not authorized' });
       }
 
-      await order.remove();
+      await Order.deleteOne({ _id: orderId });
       res.json({ msg: 'Order deleted' });
     } catch (err) {
       console.error(err.message);
