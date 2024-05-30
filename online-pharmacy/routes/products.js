@@ -1,6 +1,9 @@
 import express from 'express';
 import Product from '../models/Product.js';
 import auth from '../middleware/auth.js';
+import { Types } from 'mongoose';
+
+const { ObjectId } = Types;
 
 const router = express.Router();
 
@@ -70,11 +73,14 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.put('/:d', auth, async (req, res) => {
-  const {name, category, price, description } = req.body;
+router.put('/:id', auth, async (req, res) => {
+  const { name, category, price, description } = req.body;
 
   try {
-    let product = await Product.findById(req.params.id);
+    const productId = req.params.id;
+    console.log("Product ID:", productId);
+    let product = await Product.findById(productId);
+    console.log("Retrieved Product:", product);
     if (!product) return res.status(404).json({ msg: 'Product not found' });
 
     product.name = name || product.name;
@@ -93,13 +99,17 @@ router.put('/:d', auth, async (req, res) => {
 
 router.delete('/:id', auth, async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const productId = req.params.id;
+    if (!ObjectId.isValid(productId)) {
+      return res.status(400).json({ msg: 'Invalid product ID' });
+    }
+    const product = await Product.findById(productId);
     if (!product) {
       return res.status(404).json({ msg: 'Product not found' });
     }
+    await Product.deleteOne({ _id: productId });
 
-  await product.remove();
-  res.json({ msg: 'Product removed' });
+    res.json({ msg: 'Product removed' });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');
