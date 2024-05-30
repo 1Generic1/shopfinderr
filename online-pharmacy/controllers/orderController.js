@@ -46,7 +46,7 @@ const orderController = {
         return res.status(404).json({ msg: 'Order not found' });
       }
 
-      if (order.user.toString() !== res.user.id) {
+      if (order.user.toString() !== req.user.id) {
        return res.status(401).json({ msg: 'Not authorized' });
       }
 
