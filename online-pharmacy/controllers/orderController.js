@@ -5,29 +5,51 @@ import Product from '../models/Product.js';
 
 const orderController = {
   createOrder: async (req, res) => {
-    try {
-      const { products, totalAmount } = req.body;
-      // Ensure products exist and have sufficient quantities
-      for (let item of products) {
-        const product = await Product.findById(item.product);
-        if (!product) {
-          return res.status(404).json({ msg: 'Product not found' });
-        }
+  try {
+    const { products } = req.body;
+    let totalAmount = 0;
+    const orderProducts = [];
+
+    // Ensure products exist and have sufficient quantities
+    for (let item of products) {
+      const product = await Product.findById(item.product);
+      if (!product) {
+        return res.status(404).json({ msg: `Product with id ${item.product} not found` });
       }
 
-      const newOrder = new Order({
-        user: req.user.id,
-        products,
-        totalAmount
-      });
+      if (product.quantity < item.quantity) {
+        return res.status(400).json({ msg: `Not enough stock for product ${product.name}` });
+      }
 
-      const order = await newOrder.save();
-      res.json(order);
-    } catch (err) {
-      console.error(err.message);
-      res.status(500).send('Server Error');
+      // Calculate the total amount
+      totalAmount += product.price * item.quantity;
+
+      // Reduce product quantity
+      product.quantity -= item.quantity;
+      await product.save();
+
+      // Prepare order products array
+      orderProducts.push({
+        product: product._id,
+        quantity: item.quantity,
+        price: product.price // Include the price for reference
+      });
     }
-  },
+
+    // Create the new order
+    const newOrder = new Order({
+      user: req.user.id,
+      products: orderProducts,
+      totalAmount
+    });
+
+    const order = await newOrder.save();
+    res.json(order);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+},
 
   getOrders: async (req, res) => {
     try {
