@@ -94,6 +94,8 @@ paths:
                       type: string
                     price:
                       type: number
+                    quantity:
+                      type: number
                     description:
                       type: string
     
@@ -117,6 +119,8 @@ paths:
                   type: string
                 price:
                   type: number
+                quantity:
+                  type: number
                 description:
                   type: string
 
@@ -135,6 +139,8 @@ paths:
                   category:
                     type: string
                   price:
+                    type: number
+                  quantity:
                     type: number
                   description:
                     type: string
@@ -166,6 +172,8 @@ paths:
                     type: string
                   price:
                     type: number
+                  quantity:
+                    type: number
                   description:
                     type: string
         '404':
@@ -195,6 +203,8 @@ paths:
                   type: string
                 price:
                   type: number
+                quantity:
+                  type: number
                 description:
                   type: string
       responses:
@@ -212,6 +222,8 @@ paths:
                   category:
                     type: string
                   price:
+                    type: number
+                  quantity:
                     type: number
                   description:
                     type: string
@@ -297,8 +309,6 @@ paths:
                       quantity:
                         type: integer
                         description: The quantity of the product
-                totalAmount:
-                  type: number
                   description: The total amount of the order
       responses:
         '201':
@@ -460,7 +470,7 @@ paths:
 
   /api/users:
     get:
-      summary: Get all users
+      summary: Get logged in user
       tags:
         - Users
       security:
@@ -488,6 +498,56 @@ paths:
                       type: string
                       format: date-time
                       description: The date and time when the user was created
+
+    put:
+      summary: Update user details
+      tags: 
+        - Users
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: User details to update
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: User updated successfully
+        '401':
+          description: Unauthorized
+        '404':
+          description: User not found
+        '500':
+          description: Server error
+    delete:
+      summary: Delete user account
+      tags: 
+        - Users
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          description: userId to be deleted
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User removed successfully
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
   
   /api/users/register:
     post:
@@ -570,3 +630,19 @@ paths:
           description: Invalid credentials
         '500':
           description: Server error
+
+  /api/users/all:
+    get:
+      summary: Get all users
+      tags: 
+        - Users
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Users retrieved successfully
+        '401':
+          description: Unauthorized
+        '500':
+          description: Server error
+    

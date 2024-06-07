@@ -9,7 +9,7 @@ const router = express.Router();
 
 
 router.post('/', auth, async (req, res) => {
-  const { name, category, price, description } = req.body;
+  const { name, category, price, quantity, description } = req.body;
 
 
   try {
@@ -17,6 +17,7 @@ router.post('/', auth, async (req, res) => {
       name,
       category,
       price,
+      quantity,
       description,
     });
 
@@ -74,7 +75,7 @@ router.get('/:id', async (req, res) => {
 });
 
 router.put('/:id', auth, async (req, res) => {
-  const { name, category, price, description } = req.body;
+  const { name, category, price, quantity,  description } = req.body;
 
   try {
     const productId = req.params.id;
@@ -86,6 +87,7 @@ router.put('/:id', auth, async (req, res) => {
     product.name = name || product.name;
     product.category  = category || product.category
     product.price = price || product.price
+    product.quantity = quantity || product.quantity
     product.description = description || product.description
     
     await product.save();

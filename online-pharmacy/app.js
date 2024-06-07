@@ -20,7 +20,7 @@ const openapiDocument = YAML.load('./docs/openapi.yaml');
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapiDocument, {
   swaggerOptions: {
     requestInterceptor: (req) => {
-      req.headers.Authorization = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjY1NjczYWU3MDg3OTU0OGI3YTEzNDdlIn0sImlhdCI6MTcxNjk0MTc0MiwiZXhwIjoxNzE3MzAxNzQyfQ._hTiM7Fh9pZOzTUrCxNB--mN89VopisUzmt5KsEOsss';
+      req.headers.Authorization = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjY1OTA4MTBhMDIzZDllYTJhMDVlZDk1In0sImlhdCI6MTcxNzExMDgwMSwiZXhwIjoxNzE3NDcwODAxfQ.zV16E8LIv-IoHca9fmAVW9gHfj4f6vRk0M8z-U6wNTI'
       return req;
     }
   }
@@ -31,16 +31,6 @@ app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 
-app.get('/', (req, res) => {
-	res.json({'messege':'hello world'});
-})
-
-app.get('/user', (req, res) => {
-        res.json({
-		'messege':'hello world',
-		'name': 'john wickk'
-	});
-})
 
 app.listen(3000, () => {
 	console.log('server is running on port 3000');

@@ -19,6 +19,10 @@ const ProductSchema = new Schema({
   description: {
     type: String,
   },
+  quantity: {
+    type: Number,
+    required: true,
+  },
   date: {
     type: Date,
     default: Date.now,
