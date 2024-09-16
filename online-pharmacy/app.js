@@ -5,8 +5,16 @@ import productRoutes from './routes/products.js';
 import orderRoutes from './routes/orders.js';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs'
+import cors from 'cors'; //to allow integration from front end to backend
 
 const app = express();
+
+app.use(cors({
+  origin: 'http://localhost:3000', // Replace with your frontend's origin
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true // If you need to allow credentials (e.g., cookies)
+}));
+
 
 connectDB();
 
@@ -20,11 +28,13 @@ const openapiDocument = YAML.load('./docs/openapi.yaml');
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(openapiDocument, {
   swaggerOptions: {
     requestInterceptor: (req) => {
-      req.headers.Authorization = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjY1OTA4MTBhMDIzZDllYTJhMDVlZDk1In0sImlhdCI6MTcxNzExMDgwMSwiZXhwIjoxNzE3NDcwODAxfQ.zV16E8LIv-IoHca9fmAVW9gHfj4f6vRk0M8z-U6wNTI'
+      req.headers.Authorization = 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7ImlkIjoiNjY2MzE1OGEyNDdmYWFkYjE5MWFjZWY4In0sImlhdCI6MTcxNzc2OTYxMSwiZXhwIjoxNzE4MTI5NjExfQ.ih2OFkdL36rLUm1p5bVZUG6TjDiOmHT7-Oa3_WKBaZs'
       return req;
     }
   }
 }));
+
+app.use('/uploads', express.static('uploads'));
 
 // Define Routes
 app.use('/api/users', userRoutes);
@@ -32,6 +42,6 @@ app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 
 
-app.listen(3000, () => {
+app.listen(3001, () => {
 	console.log('server is running on port 3000');
 });

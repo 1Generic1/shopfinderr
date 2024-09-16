@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import authMiddleware from '../middleware/auth.js';
+import upload from '../middleware/uploadMiddleware.js';
 import { Types } from 'mongoose';
 
 const { ObjectId } = Types;
@@ -11,16 +12,24 @@ const router = express.Router();
 
 // Register a user
 router.post('/register', async (req, res) => {
-  const { name, email, password } = req.body;
+  const { firstName, lastName, userName, email, password } = req.body;
 
   try {
     let user = await User.findOne({ email });
     if (user) {
       return res.status(400).json({ errors: [{ msg: 'User already exists' }] });
     }
+
+    // Check if the username already exists
+    user = await User.findOne({ userName });
+    if (user) {
+      return res.status(400).json({ errors: [{ msg: 'Username already taken' }] });
+    }
   
   user = new User({
-    name,
+    firstName,
+    lastName,
+    userName,
     email,
     password,
   });
@@ -53,8 +62,8 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Authenticate user & get token
-router.post('/login', async (req, res) => {
+// Authenticate user & get token for only email logins
+/**router.post('/login', async (req, res) => {
   const {email, password} = req.body;
 
   try {
@@ -86,10 +95,54 @@ router.post('/login', async (req, res) => {
     console.error(err.message);
     res.status(500).send('Server error');
   }
-});
+}); **/
+
+//login for username or email
+router.post('/login', async (req, res) => {
+  const { emailOrUsername, password } = req.body;
+
+  try {
+    // Find user by either email or username
+    let user = await User.findOne({
+      $or: [{ email: emailOrUsername }, { userName: emailOrUsername }]
+    });
+
+    // If no user is found
+    if (!user) {
+      return res.status(400).json({ errors: [{ msg: 'Invalid Credentials' }] });
+    }
+
+    // Compare the provided password with the hashed password
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ errors: [{ msg: 'Invalid Credentials' }] });
+    }
+
+    // Create a JWT payload
+    const payload = {
+      user: {
+        id: user.id,
+      },
+    };
+
+    // Sign the JWT and return it
+    jwt.sign(
+      payload,
+      'your_jwt_secret', // In production, use an environment variable for the secret
+      { expiresIn: 360000 },
+      (err, token) => {
+        if (err) throw err;
+        res.json({ token });
+      }
+    );
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+})
 
 // Get logged in user
-router.get('/', authMiddleware, async (req, res) => {
+router.get('/profile', authMiddleware, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
     res.json(user);
@@ -101,14 +154,17 @@ router.get('/', authMiddleware, async (req, res) => {
 
 //update a user details
 router.put('/', authMiddleware, async (req, res) => {
-  const { name, email, password } = req.body;
+  const { firstName, lastName, userName, email, password } = req.body;
   const userFields = {};
-  if (name) userFields.name = name;
+  if (firstName) userFields.firstName = firstName;
+  if (lastName) userFields.lastName = lastName;
   if (email) userFields.email = email;
+  if (userName) userFields.userName = userName;
   if (password) {
     const salt = await bcrypt.genSalt(10);
     userFields.password = await bcrypt.hash(password, salt);
   }
+  if (profilePicture) userFields.profilePicture = profilePicture;
   
   try {
     let user = await User.findById(req.user.id);
@@ -157,5 +213,28 @@ router.get('/all', authMiddleware, async (req, res) => {
     res.status(500).send('Server error');
   }
 });
+
+// Upload user profile picture
+router.post('/upload-profile-picture', authMiddleware, upload, async (req, res) => {
+  console.log('Starting file upload logic');
+  try {
+    // Get the file from multer
+    const profilePicture = req.file;
+
+    // Find user and update profile picture
+    let user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ msg: 'User not found' });
+    
+    // Update the profile picture URL
+    user.profilePicture = profilePicture.path; 
+    await user.save();
+
+    res.json({ msg: 'Profile picture uploaded successfully', imageUrl: profilePicture.path });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
 
 export default router;
