@@ -118,6 +118,8 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ errors: [{ msg: 'Invalid Credentials' }] });
     }
 
+    console.log('User Role:', user.role);
+
     // Compare the provided password with the hashed password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
@@ -128,6 +130,7 @@ router.post('/login', async (req, res) => {
     const payload = {
       user: {
         id: user.id,
+        role: user.role,
       },
     };
 
@@ -138,7 +141,7 @@ router.post('/login', async (req, res) => {
       { expiresIn: 360000 },
       (err, token) => {
         if (err) throw err;
-        res.json({ token });
+        res.json({ token, user: { id: user._id, role: user.role } });
       }
     );
   } catch (err) {

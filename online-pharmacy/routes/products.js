@@ -1,6 +1,7 @@
 import express from 'express';
 import Product from '../models/Product.js';
 import auth from '../middleware/auth.js';
+import uploadProductImage from '../middleware/uploadProductImage.js';
 import { Types } from 'mongoose';
 
 const { ObjectId } = Types;
@@ -30,7 +31,7 @@ router.post('/', auth, async (req, res) => {
 });
 
 
-router.get('/', async (req, res) => {
+router.get('/all_products', async (req, res) => {
   try {
     // Extract query parameters
     const { category, minPrice, maxPrice, sortBy, page = 1, pageSize = 10 } = req.query;
@@ -98,6 +99,38 @@ router.put('/:id', auth, async (req, res) => {
     res.status(500).send('Server error');
   }
 });
+
+router.post('/add', uploadProductImage, async (req, res) => {
+  try {
+    const { name, category, price, description, quantity } = req.body;
+
+    let imageUrl = '';
+    if (req.file) {
+      imageUrl = `/uploads/products_images/${req.file.filename}`; // Save the file path for product image
+    }
+
+    // Check if the category exists
+    const existingCategory = await Category.findOne({ name: category });
+    if (!existingCategory) {
+      return res.status(400).json({ msg: 'Category does not exist' });
+    }
+
+    const newProduct = new Product({
+      name,
+      category,
+      price,
+      description,
+      quantity,
+      image: imageUrl, // Save the image URL in the product model
+    });
+
+    await newProduct.save();
+    res.status(201).json({ message: 'Product added successfully', newProduct });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to add product' });
+  }
+});
+
 
 router.delete('/:id', auth, async (req, res) => {
   try {
