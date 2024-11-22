@@ -10,7 +10,7 @@ Contact:
   email: "kelvinstunt@gmail.com"
 
 servers:
-  - url: http://localhost:3000
+  - url: http://localhost:3001
     description: Default server for local development
     name: Local Development Server
 
@@ -98,8 +98,7 @@ paths:
                       type: number
                     description:
                       type: string
-    
-
+  /api/products/add:
     post:
       summary: Creates a new product.
       tags:
@@ -109,41 +108,89 @@ paths:
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
               type: object
               properties:
                 name:
                   type: string
+                  description: Name of the product
+                  example: "Aspirin"
                 category:
                   type: string
+                  description: Category of the product
+                  example: "Pharmaceuticals"
                 price:
                   type: number
+                  description: Price of the product
+                  example: 19.99
                 quantity:
                   type: number
+                  description: Available stock for the product
+                  example: 50
                 description:
                   type: string
-
+                  description: Brief description of the product
+                  example: "Used to treat pain, fever, and inflammation."
+                image:
+                  type: string
+                  format: binary
+                  description: The product image file
       responses:
         '201':
-          description: Product created
+          description: Product created successfully
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  id:
+                  message:
                     type: string
-                  name:
+                    example: Product added successfully
+                  newProduct:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 61234abcd1234
+                      name:
+                        type: string
+                        example: "Aspirin"
+                      category:
+                        type: string
+                        example: "Pharmaceuticals"
+                      price:
+                        type: number
+                        example: 19.99
+                      quantity:
+                        type: number
+                        example: 50
+                      description:
+                        type: string
+                        example: "Used to treat pain, fever, and inflammation."
+                      image:
+                        type: string
+                        example: "/uploads/products_images/aspirin.png"
+        '400':
+          description: Category does not exist
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
                     type: string
-                  category:
+                    example: Category does not exist
+        '500':
+          description: Failed to add product
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
                     type: string
-                  price:
-                    type: number
-                  quantity:
-                    type: number
-                  description:
-                    type: string
+                    example: Failed to add product
 
   /api/products/{productId}:
     get:
@@ -229,7 +276,6 @@ paths:
                     type: string
         '404':
           description: Product not found
-
     delete:
       summary: Deletes a product by ID.
       tags:
@@ -645,4 +691,104 @@ paths:
           description: Unauthorized
         '500':
           description: Server error
-    
+
+  /api/categories/upload:
+    post:
+      summary: Creates a new category with an image upload.
+      tags:
+        - Categories
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Name of the category
+                  example: "Pharmaceuticals"
+                image:
+                  type: string
+                  format: binary
+                  description: The image file for the category
+      responses:
+        '201':
+          description: Category created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Category added successfully
+                  newCategory:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: 61234abcd1234
+                      name:
+                        type: string
+                        example: "Pharmaceuticals"
+        '400':
+          description: Category already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: Category already exists
+        '500':
+          description: Failed to add category
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to add category
+
+  /api/categories/all_categories:
+    get:
+      summary: Fetches all categories.
+      tags:
+        - Categories
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: A list of categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: 61234abcd1234
+                    name:
+                      type: string
+                      example: "Pharmaceuticals"
+                    image:
+                      type: string
+                      example: "/uploads/categories/image1.jpg"
+        '500':
+          description: Failed to fetch categories
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Failed to fetch categories
+

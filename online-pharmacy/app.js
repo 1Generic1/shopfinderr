@@ -3,6 +3,7 @@ import connectDB from './config/db.js';
 import userRoutes from './routes/users.js';
 import productRoutes from './routes/products.js';
 import orderRoutes from './routes/orders.js';
+import categoryRoutes from './routes/category.js';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs'
 import cors from 'cors'; //to allow integration from front end to backend
@@ -40,8 +41,8 @@ app.use('/uploads', express.static('uploads'));
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
-
+app.use('/api/categories', categoryRoutes);
 
 app.listen(3001, () => {
-	console.log('server is running on port 3000');
+	console.log('server is running on port 3001');
 });

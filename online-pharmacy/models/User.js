@@ -40,6 +40,45 @@ const UserSchema = new Schema({
     default: undefined, // not to display anything when null
     //default: null
   },
+
+    phone: {
+    type: String, // Use String to store phone numbers
+    default: 'N/A', // Default if not provided
+  },
+
+  gender: {
+    type: String, // Could be 'Male', 'Female', 'Other', etc.
+    default: 'N/A',
+  },
+
+  country: {
+    type: String,
+    default: 'N/A',
+  },
+
+  city: {
+    type: String,
+    default: 'N/A',
+  },
+
+  postalCode: {
+    type: String,
+    default: 'N/A',
+  },
+
+  additionalInfo: {
+    type: String, // Store any other additional information
+    default: 'N/A',
+  },
+
+  bio: {
+    type: String, // A short biography or description
+    default: 'N/A',
+  },
+
+  role: { type: String, default: 'user' },
 });
+
+
 
 export default mongoose.model('User', UserSchema);

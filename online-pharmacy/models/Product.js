@@ -23,6 +23,19 @@ const ProductSchema = new Schema({
     type: Number,
     required: true,
   },
+
+  rating: {
+    type: Number,
+    min: 0,
+    max: 5,
+    default: 0, // Default rating will be 0
+  },
+  
+  image: {
+    type: String, // To store the image URL or file path
+    required: true,
+  },
+
   date: {
     type: Date,
     default: Date.now,
