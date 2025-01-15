@@ -138,6 +138,7 @@ router.post('/login', async (req, res) => {
     jwt.sign(
       payload,
       'your_jwt_secret', // In production, use an environment variable for the secret
+      //{ expiresIn: 3600 }, 1hr 
       { expiresIn: 360000 },
       (err, token) => {
         if (err) throw err;

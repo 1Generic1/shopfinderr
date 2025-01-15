@@ -170,3 +170,31 @@ export const removeSelectedItems = async (req, res) => {
   }
 };
 
+
+export const removeMultipleItems = async (req, res) => {
+  const { itemIds } = req.body; // Expecting an array of item IDs
+
+  if (!Array.isArray(itemIds) || itemIds.length === 0) {
+    return res.status(400).json({ error: 'itemIds must be a non-empty array.' });
+  }
+
+  try {
+
+    console.log('Request body:', req.body);
+    // Pull the items from the cart that match the productIds in itemIds
+    const result = await Cart.updateMany(
+      { "items.productId": { $in: itemIds } }, // Match items inside the cart
+      { $pull: { items: { productId: { $in: itemIds } } } } // Remove items with matching productIds
+    );
+
+    console.log('Result of updateMany:', result);
+    if (result.modifiedCount === 0) {
+      return res.status(404).json({ error: 'No items found to remove.' });
+    }
+
+    res.status(200).json({ message: 'Items removed successfully.', deletedCount: result.modifiedCount });
+  } catch (error) {
+    console.error('Error removing items:', error);
+    res.status(500).json({ error: 'Failed to remove items.' });
+  }
+};

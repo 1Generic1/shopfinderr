@@ -4,6 +4,7 @@ import userRoutes from './routes/users.js';
 import productRoutes from './routes/products.js';
 import orderRoutes from './routes/orders.js';
 import categoryRoutes from './routes/category.js';
+import cartRoutes from './routes/cartRoutes.js';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs'
 import cors from 'cors'; //to allow integration from front end to backend
@@ -12,12 +13,19 @@ const app = express();
 
 app.use(cors({
   origin: 'http://localhost:3000', // Replace with your frontend's origin
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   credentials: true // If you need to allow credentials (e.g., cookies)
 }));
 
 
 connectDB();
+
+//Error Logging: Add logging in your backend to inspect the requests
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.url}`, req.body);
+    next();
+});
+
 
 // Init Middleware
 app.use(express.json({ extended: false }));
@@ -42,6 +50,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/cart', cartRoutes);
 
 app.listen(3001, () => {
 	console.log('server is running on port 3001');
