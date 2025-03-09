@@ -76,6 +76,8 @@ const UserSchema = new Schema({
     default: 'N/A',
   },
 
+  darkMode: { type: Boolean, default: false },
+
   role: { type: String, default: 'user' },
 });
 

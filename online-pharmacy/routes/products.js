@@ -97,7 +97,10 @@ router.put('/:id', auth, uploadProductImage, async (req, res) => {
     product.name = name || product.name;
     product.category  = category || product.category
     product.price = price || product.price
-    product.quantity = quantity || product.quantity
+    if (quantity !== undefined) {
+      product.quantity = quantity;
+      product.inStock = quantity > 0; // Explicitly set inStock here
+    }  
     product.description = description || product.description
 
     // Set the rating if provided and valid

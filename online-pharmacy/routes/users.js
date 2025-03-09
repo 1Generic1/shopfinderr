@@ -426,5 +426,22 @@ router.post('/upload-profile-picture', authMiddleware, upload, async (req, res) 
   }
 });
 
+//endpoint to update darkmode
+router.put('/darkmode', async (req, res) => {
+  const { userId, darkMode } = req.body;
+
+  try {
+    const user = await User.findById(userId, { darkMode }, { new: true });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.darkMode = darkMode;
+    await user.save();
+
+    res.json({ message: 'Dark mode updated', darkMode: user.darkMode });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 
 export default router;

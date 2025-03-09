@@ -1,13 +1,17 @@
 import express from 'express'
 import connectDB from './config/db.js';
 import userRoutes from './routes/users.js';
-import productRoutes from './routes/products.js';
+//import productRoutes from './routes/products.js';
 import orderRoutes from './routes/orders.js';
 import categoryRoutes from './routes/category.js';
 import cartRoutes from './routes/cartRoutes.js';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs'
 import cors from 'cors'; //to allow integration from front end to backend
+import wishlistRoutes from './routes/wishlistRoutes.js';
+import productRoutes from './routes/productRoutes.js';
+import variantRoutes from './routes/variantRoutes.js';
+import subVariantRoutes from './routes/subVariantRoutes.js';
 
 const app = express();
 
@@ -47,10 +51,14 @@ app.use('/uploads', express.static('uploads'));
 
 // Define Routes
 app.use('/api/users', userRoutes);
-app.use('/api/products', productRoutes);
+//app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/cart', cartRoutes);
+app.use('/api/wishlist', wishlistRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/variant', variantRoutes);
+app.use('/api/subVariant', subVariantRoutes);
 
 app.listen(3001, () => {
 	console.log('server is running on port 3001');
