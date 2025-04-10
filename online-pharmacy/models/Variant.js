@@ -22,4 +22,31 @@ const variantSchema = new mongoose.Schema({
   subVariants: [subVariantSchema], // Optional sub-variants
 });
 
+
+// Middleware to update price and stock dynamically
+variantSchema.pre('save', function (next) {
+  if (this.subVariants.length > 0) {
+    // Sum up the stock from subvariants
+    this.stock = this.subVariants.reduce((total, sv) => total + sv.stock, 0);
+
+    // Set price to null if subvariants exist
+    this.price = null;
+  }
+  next();
+});
+
+// Middleware to handle updates
+variantSchema.pre('findOneAndUpdate', async function (next) {
+  const variant = await this.model.findOne(this.getQuery());
+
+  if (variant && variant.subVariants.length > 0) {
+    // Sum up the stock from subvariants
+    const totalStock = variant.subVariants.reduce((total, sv) => total + sv.stock, 0);
+
+    // Set price to null if subvariants exist
+    this.set({ stock: totalStock, price: null });
+  }
+
+  next();
+});
 export default variantSchema;

@@ -1,6 +1,6 @@
 import express from 'express';
 import authMiddleware from '../middleware/auth.js';
-import { createSubVariant, addSubVariantImages, deleteSubVariantImage } from '../controllers/subVariantController.js';
+import { createSubVariant, addSubVariantImages, updateSubVariant, deleteSubVariantImage } from '../controllers/subVariantController.js';
 import uploadSubVariantImage from '../middleware/uploadSubVariantImage.js';
 import uploadSubVariantImages from '../middleware/uploadSubVariantImages.js';
 const router = express.Router();
@@ -9,8 +9,8 @@ const router = express.Router();
 router.post('/:variantId/create', authMiddleware, uploadSubVariantImage, createSubVariant);
 
 // Route to update a sub-variant
-//router.put('/:subVariantId/update', authMiddleware, updateSubVariant);
-
+router.put('/:subVariantId/update', authMiddleware, uploadSubVariantImage, updateSubVariant);
+ 
 // Route to delete a sub-variant
 //router.delete('/:subVariantId/delete', authMiddleware, deleteSubVariant);
 

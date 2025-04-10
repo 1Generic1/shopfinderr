@@ -9,6 +9,16 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const deleteFile = (filePath) => {
+  fs.unlink(filePath, (err) => {
+    if (err) {
+      console.error(`Failed to delete file: ${filePath}`, err);
+    } else {
+      console.log(`File deleted successfully: ${filePath}`);
+    }
+  });
+};
+
 
 // Add a sub-variant to a specific variant
 export const createSubVariant = async (req, res) => {
@@ -53,6 +63,81 @@ export const createSubVariant = async (req, res) => {
   } catch (error) {
     console.error("Error creating sub-variant:", error);
     res.status(500).json({ error: 'Failed to add sub-variant', details: error.message });
+  }
+};
+
+
+export const updateSubVariant = async (req, res) => {
+  try {
+    const { subVariantId } = req.params;
+    const { name, price, stock, imagePosition, imageIndex } = req.body;
+
+    // Find the product that contains the subvariant
+    const product = await Product.findOne({ "variants.subVariants._id": subVariantId });
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    let variant = null;
+    let subVariant = null;
+
+    // Find the variant and subvariant
+    for (const v of product.variants) {
+      subVariant = v.subVariants.id(subVariantId);
+      if (subVariant) {
+        variant = v;
+        break;
+      }
+    }
+
+    if (!subVariant) {
+      return res.status(404).json({ message: "Sub-variant not found" });
+    }
+
+    // Update subvariant fields
+    if (name) subVariant.name = name;
+    if (price) subVariant.price = price;
+    if (stock) subVariant.stock = stock;
+
+    // Handle image update if a new image is provided
+    if (req.file) {
+      const imageUrl = `${BASE_URL}/uploads/subvariant_images/${req.file.filename}`;
+
+      // Determine where to place the new image
+      if (imagePosition === "first") {
+        subVariant.images.unshift(imageUrl); // Add to the beginning
+      } else if (imagePosition === "last") {
+        subVariant.images.push(imageUrl); // Add to the end
+      } else if (imagePosition === "specific") {
+        const index = parseInt(imageIndex); // Specific index
+        if (index >= 0 && index < subVariant.images.length) {
+          subVariant.images.splice(index, 0, imageUrl); // Insert at the specified index
+        } else {
+          return res.status(400).json({ message: "Invalid image index" });
+        }
+      } else {
+        return res.status(400).json({ message: "Invalid image position" });
+      }
+
+      // Ensure the array does not exceed the maximum limit (e.g., 5 images)
+      if (subVariant.images.length > 5) {
+        const removedImages = subVariant.images.slice(5); // Get the images that will be removed
+        subVariant.images = subVariant.images.slice(0, 5); // Keep only the first 5 images
+
+        // Delete the removed files from the file system
+        removedImages.forEach((image) => {
+          const filePath = path.join(__dirname, "..", image.replace(BASE_URL, ""));
+          deleteFile(filePath);
+        });
+      }
+    }
+
+     await product.save();
+
+    res.status(200).json({ message: "Sub-variant updated successfully", subVariant });
+  } catch (error) {
+    console.error("Error in updateSubVariant:", error);
+    res.status(500).json({ message: "Failed to update sub-variant", error: error.message });
   }
 };
 

@@ -39,42 +39,66 @@ const productSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-// Middleware to update price and stock dynamically
 productSchema.pre('save', function (next) {
   if (this.variants.length > 0) {
     // Find the lowest price from variants and subVariants
-    let allPrices = this.variants.flatMap(v => 
-      v.subVariants && v.subVariants.length > 0 
-        ? [v.price, ...v.subVariants.map(sv => sv.price)] 
-        : [v.price]
-    );
-    this.price = allPrices.length > 0 ? Math.min(...allPrices) : this.price;
+    let allPrices = this.variants.flatMap(v => {
+      if (v.subVariants && v.subVariants.length > 0) {
+        // If the variant has subvariants, ignore its price and use subvariant prices
+        return v.subVariants.map(sv => sv.price);
+      } else {
+        // If the variant has no subvariants, use its price
+        return [v.price];
+      }
+    });
+
+    // Calculate the minimum price (ignore null or undefined values)
+    this.price = allPrices.length > 0 ? Math.min(...allPrices.filter(p => p != null)) : this.price;
 
     // Sum up the stock from variants and subVariants
     this.stock = this.variants.reduce((total, v) => {
-      let subvariantStock = v.subVariants ? v.subVariants.reduce((subTotal, sv) => subTotal + sv.stock, 0) : 0;
-      return total + v.stock + subvariantStock;
+      if (v.subVariants && v.subVariants.length > 0) {
+        // If the variant has subvariants, sum the subvariant stocks
+        return total + v.subVariants.reduce((subTotal, sv) => subTotal + sv.stock, 0);
+      } else {
+        // If the variant has no subvariants, use its stock
+        return total + v.stock;
+      }
     }, 0);
   }
   next();
 });
 
-// Also handle updates
+
 productSchema.pre('findOneAndUpdate', async function (next) {
   let product = await this.model.findOne(this.getQuery());
 
   if (product && product.variants.length > 0) {
-    let allPrices = product.variants.flatMap(v => 
-      v.subVariants && v.subVariants.length > 0 
-        ? [v.price, ...v.subVariants.map(sv => sv.price)] 
-        : [v.price]
-    );
-    this.set({ price: allPrices.length > 0 ? Math.min(...allPrices) : product.price });
+    // Find the lowest price from variants and subVariants
+    let allPrices = product.variants.flatMap(v => {
+      if (v.subVariants && v.subVariants.length > 0) {
+        // If the variant has subvariants, ignore its price and use subvariant prices
+        return v.subVariants.map(sv => sv.price);
+      } else {
+        // If the variant has no subvariants, use its price
+        return [v.price];
+      }
+    });
 
+    // Calculate the minimum price (ignore null or undefined values)
+    this.set({ price: allPrices.length > 0 ? Math.min(...allPrices.filter(p => p != null)) : product.price });
+
+    // Sum up the stock from variants and subVariants
     let totalStock = product.variants.reduce((total, v) => {
-      let subvariantStock = v.subVariants ? v.subVariants.reduce((subTotal, sv) => subTotal + sv.stock, 0) : 0;
-      return total + v.stock + subvariantStock;
+      if (v.subVariants && v.subVariants.length > 0) {
+        // If the variant has subvariants, sum the subvariant stocks
+        return total + v.subVariants.reduce((subTotal, sv) => subTotal + sv.stock, 0);
+      } else {
+        // If the variant has no subvariants, use its stock
+        return total + v.stock;
+      }
     }, 0);
+
     this.set({ stock: totalStock });
   }
 

@@ -5,10 +5,19 @@ import BASE_URL from '../config/config.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { deleteFile } from '../utils/fileUtils.js';
 
 // Define __dirname manually
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Helper functions
+function getPhysicalPath(url) {
+  const uploadsDir = path.join(__dirname, '..', 'uploads', 'products_images');
+  const filename = url?.split('/')?.pop();
+  return filename ? path.join(uploadsDir, filename) : null;
+}
+
 
 // Create a new product (without variants)
 export const createProduct = async (req, res) => {
@@ -108,6 +117,121 @@ export const getProductById = async (req, res) => {
   }
 };
 
+
+export const updateProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, category, price, stock, description, rating, imagePosition, imageIndex } = req.body;
+
+    // Verify required fields
+    if (!name || !category || !price || stock === undefined) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // Update product fields
+    product.name = name;
+    product.category = category;
+    product.price = price;
+    product.stock = stock;
+    if (description) product.description = description;
+    
+    // Validate rating
+    if (rating !== undefined) {
+      if (rating < 0 || rating > 5) {
+        return res.status(400).json({ message: "Rating must be between 0 and 5" });
+      }
+      product.rating = rating;
+    }
+
+    // Handle image update
+    if (req.file) {
+      const imageUrl = `${BASE_URL}/uploads/products_images/${req.file.filename}`;
+      const uploadsDir = path.join(__dirname, '..', 'uploads', 'products_images');
+
+      // Verify file exists
+      const tempFilePath = path.join(uploadsDir, req.file.filename);
+      if (!fs.existsSync(tempFilePath)) {
+        return res.status(400).json({ message: "Uploaded file not found" });
+      }
+
+      // Initialize images array if it doesn't exist
+      if (!product.images) product.images = [];
+
+      switch (imagePosition) {
+        case 'first':
+          // Replace first image
+          if (product.images[0]) deleteFile(getPhysicalPath(product.images[0]));
+          product.images[0] = imageUrl;
+          break;
+
+        case 'last':
+          // Replace last image
+          if (product.images.length > 0) {
+            deleteFile(getPhysicalPath(product.images[product.images.length - 1]));
+            product.images.pop();
+          }
+          product.images.push(imageUrl);
+          break;
+
+        case 'specific':
+          const index = parseInt(imageIndex);
+          // Replace at specific index
+          if (index >= 0 && index < product.images.length) {
+            if (product.images[index]) deleteFile(getPhysicalPath(product.images[index]));
+            product.images[index] = imageUrl;
+          } else if (index === product.images.length) {
+            // Allow adding to end if index is exactly at length
+            product.images.push(imageUrl);
+          } else {
+            deleteFile(tempFilePath);
+            return res.status(400).json({ message: "Invalid image index" });
+          }
+          break;
+
+        default:
+          deleteFile(tempFilePath);
+          return res.status(400).json({ message: "Invalid image position" });
+      }
+
+      // Clean up empty entries and enforce max limit
+      product.images = product.images.filter(img => img);
+      if (product.images.length > 5) {
+        product.images.slice(5).forEach(img => deleteFile(getPhysicalPath(img)));
+        product.images = product.images.slice(0, 5);
+      }
+    }
+
+    await product.save();
+    res.status(200).json({ 
+      message: "Product updated successfully", 
+      product: {
+        _id: product._id,
+        name: product.name,
+        price: product.price,
+        images: product.images,
+        // include other necessary fields
+      }
+    });
+
+  } catch (error) {
+    console.error("Error in updateProduct:", error);
+    if (req?.file?.filename) {
+      const uploadsDir = path.join(__dirname, '..', 'uploads', 'products_images');
+      deleteFile(path.join(uploadsDir, req.file.filename));
+    }
+    res.status(500).json({ 
+      message: "Failed to update product",
+      error: error.message 
+    });
+  }
+};
+
+
 export const addProductImages = async (req, res) => {
 
   console.log("Request Body:", req.body); // Log the request body
@@ -203,4 +327,46 @@ export const deleteProductImage = async (req, res) => {
     res.status(500).json({ message: "Failed to delete image", error: error.message });
   }
 };
+
+
+// Delete product and its associated images
+export const deleteProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find the product first
+    const product = await Product.findById(id);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    // Delete all associated images from the file system
+    if (product.images && product.images.length > 0) {
+      for (const imageUrl of product.images) {
+        try {
+          const filePath = getPhysicalPath(imageUrl);
+          if (filePath && fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            console.log(`Deleted image file: ${filePath}`);
+          }
+        } catch (err) {
+          console.error(`Error deleting image file for URL ${imageUrl}:`, err);
+          // Continue with deletion even if one image fails to delete
+        }
+      }
+    }
+
+    // Delete the product from the database
+    await Product.findByIdAndDelete(id);
+
+    res.status(200).json({ message: "Product and associated images deleted successfully" });
+  } catch (error) {
+    console.error("Error in deleteProduct:", error);
+    res.status(500).json({ 
+      message: "Failed to delete product",
+      error: error.message 
+    });
+  }
+};
+
 
