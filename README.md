@@ -107,4 +107,5 @@ Technologies Used
 - Swagger: For API documentation.
 
 Author
-- Kelvin Chibuzo Ifeanyi
+- Generic
+  
